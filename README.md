@@ -1,23 +1,23 @@
-# search-console-stack
+# Search Console Stack
 
 A reporting stack for Google Search Console. It keeps a local copy of your
-Search Console data in the same schema as the BigQuery bulk export, and it comes
-with ready-made SQL reports that run on the local copy and on the export without
+Search Console data in the same schema as the BigQuery bulk export and it comes
+with ready made SQL reports that run on the local copy and on the export without
 a change.
 
 ## What you get
 
-- A local SQLite database that mirrors the native BigQuery bulk export schema.
-- Two pull scripts: one for the Search Console API, one for the BigQuery export.
-- About 35 canned SQL reports for site-level and page-level analysis.
-- A one-step installer for macOS, Linux and Windows.
+- A local SQLite database that mirrors the native Big Query bulk export schema.
+- Two pull scripts: one for the Search Console API, one for the Big Query export.
+- SQL reports for site level and page level analysis.
+- A one step installer for macOS, Linux and Windows.
 
 ## How it works
 
-The pull scripts write the same table names and column names that the BigQuery
+The pull scripts write the same table names and column names that the Big Query
 bulk export uses (`searchdata_site_impression` and `searchdata_url_impression`).
 So the reports in `queries/` run on the local SQLite database and on the export
-in BigQuery. Only two things change for BigQuery:
+in BigQuery. Only two things change for Big Query:
 
 - The table name gets the project and dataset prefix, for example
   `project.dataset.searchdata_url_impression`.
@@ -25,14 +25,14 @@ in BigQuery. Only two things change for BigQuery:
   has a comment with the exact change.
 
 Use the API script to backfill about 16 months of history. Then run the
-BigQuery script each day. The two scripts write the same tables. For each day,
-the last script to write wins, so BigQuery replaces the API figures with the
+Big Query script each day. The two scripts write the same tables. For each day,
+the last script to write wins, so Big Query replaces the API figures with the
 exact export figures as it becomes available.
 
 ## Requirements
 
 - A Google Search Console property that you own.
-- For the BigQuery path: the Search Console [bulk data export](https://support.google.com/webmasters/answer/12919192) set up for that property.
+- For the Big Query path: the Search Console [bulk data export](https://support.google.com/webmasters/answer/12919192) set up for that property.
 - Python 3.9 or later. The installer adds it if it is not present.
 
 ## Install
@@ -67,7 +67,7 @@ files. Never commit them.
 ## Get the data
 
 1. Open `GSC-setup/basic_gsc_pull.py` (API) or `GSC-setup/basic_big_query_pull.py`
-   (BigQuery). Set `SITE_URL` or `PROJECT` and set the dates at the top.
+   (Big Query). Set `SITE_URL` or `PROJECT` and set the dates at the top.
 2. Run a pull, then check the result:
 
    ```
@@ -152,7 +152,7 @@ Site-level reports read `searchdata_site_impression`. Page-level reports read
   the anonymised rows so each query is a real string. The totals and trends keep
   all rows, so they are complete.
 - **The API is approximate.** The API gives an average position with rounding and
-  it omits the anonymised queries. The BigQuery export is exact. So the API
+  it omits the anonymised queries. The Big Query export is exact. So the API
   backfill is a little low until the export writes the same day.
 - **Search appearance is BigQuery only.** The export has about 30 search-appearance
   (`is_*`) columns, for rich results. The local copy and the API do not keep them,
