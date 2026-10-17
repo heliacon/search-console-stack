@@ -1,5 +1,6 @@
--- Month over month totals: current period against the previous one.
--- All rows kept. Only the two date ranges differ from the w/w and y/y versions.
+-- The month-over-month totals: the current period and the previous period.
+-- The two months can have a different number of days. Allow for this in the change.
+-- Edit the two date ranges.
 WITH current_period AS (
   SELECT SUM(clicks) AS clicks,
          SUM(impressions) AS impressions,

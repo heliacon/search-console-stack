@@ -1,6 +1,6 @@
--- Top queries by clicks for a property.
--- Anonymised-query rows are dropped so every query shown is a real string; the
--- totals therefore sit a little below the property total.
+-- The top queries by clicks for a property.
+-- This query removes the anonymised-query rows. Each query is then a real text string.
+-- As a result, the totals are a little less than the property total.
 SELECT query,
        SUM(clicks) AS clicks,
        SUM(impressions) AS impressions,

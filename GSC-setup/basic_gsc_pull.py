@@ -1,19 +1,24 @@
-"""Download Search Console performance into a local mirror of the BigQuery
-bulk export schema (Search Analytics API version).
+"""Download Search Console data into a local copy of the BigQuery bulk export.
 
-This writes the same table and column names that Google's BigQuery bulk export
-uses, so the canned queries in ../queries run unchanged here and against the
-live export: only the table prefix differs. Use this to backfill ~16 months of
-history up front, then run basic_big_query_pull.py daily going forward. Both
-write the same tables and resolve to last-writer-wins per day, so the day you
-keep running (BigQuery) quietly takes over as its exports land.
+This script uses the Search Analytics API. It writes the same table names and
+column names as the BigQuery bulk export. So the queries in the queries folder
+operate on this local copy and on the export. Only the table prefix is different.
 
-Caveats of the API as a source (per-query reports are unaffected):
-  * position is a rounded average, so sum_position is reconstructed as
-    (position - 1) * impressions and is approximate.
-  * anonymised queries are omitted entirely when the query dimension is
-    requested, so site/page totals built from this source run slightly low
-    until BigQuery overwrites the day.
+Use this script to get about 16 months of history. Then run
+basic_big_query_pull.py each day. The two scripts write the same tables. For
+each day, the last script to write wins. So BigQuery becomes the data source
+after its export is available, because you continue to run it.
+
+Limitations of the API as a data source (the per-query reports are not affected):
+  - The API gives an average position with rounding. This script calculates
+    sum_position as (position - 1) * impressions. This value is an approximation.
+  - The API does not supply the anonymised queries when you ask for the query
+    dimension. So the site totals and the page totals from this source are a
+    little low until BigQuery writes the day again.
+  - This script does not write DISCOVER or GOOGLE_NEWS rows to the site table,
+    because those surfaces have no query dimension at property level. BigQuery
+    adds them later. So site_search_type_breakdown.sql shows no DISCOVER or
+    GOOGLE_NEWS rows until the export writes the day.
 """
 import datetime as dt
 import os
@@ -23,7 +28,7 @@ from googleapiclient.discovery import build
 # --- Change these settings ---
 SITE_URL = "sc-domain:example.com"
 START_DATE = "2025-01-01"
-END_DATE = ""              # optional "YYYY-MM-DD" to cap the backfill; "" = up to today-3
+END_DATE = ""              # optional "YYYY-MM-DD" to limit the backfill; "" = up to today-3
 DB_FILE = "gsc.db"
 AUTH_METHOD = "service_account"  # or "oauth"
 REFRESH_DAYS = 7
@@ -31,16 +36,17 @@ SEARCH_TYPES = ("web", "image", "video", "news", "discover", "googleNews")
 
 SCOPES = ["https://www.googleapis.com/auth/webmasters.readonly"]
 
-# The API uses camelCase search types; the export stores them like this.
+# The API uses camelCase search types. The export uses these names.
 SEARCH_TYPE_NATIVE = {
     "web": "WEB", "image": "IMAGE", "video": "VIDEO", "news": "NEWS",
     "discover": "DISCOVER", "googleNews": "GOOGLE_NEWS",
 }
 
-# Mirror of the BigQuery bulk export core columns. SQLite has no DATE or BOOL,
-# so data_date is TEXT (ISO) and the is_anonymized_* flags are INTEGER 0/1.
-# Google adds ~30 volatile search-appearance (is_*) columns to the export over
-# time; those are not mirrored here.
+# These are the core columns of the BigQuery bulk export.
+# SQLite does not have a DATE type or a BOOL type. So data_date is TEXT in ISO
+# format, and the is_anonymized_* flags are INTEGER values 0 or 1.
+# The export also has about 30 search-appearance (is_*) columns. This copy does
+# not keep them.
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS searchdata_url_impression (
     data_date TEXT, site_url TEXT, url TEXT, query TEXT,
@@ -90,7 +96,7 @@ def connect_google():
 
 
 def download_day(client, day, api_search_type, level):
-    # Discover and Google News do not provide search queries.
+    # Discover and Google News do not give search queries.
     if level == "url":
         dimensions = (["page", "country", "device"] if api_search_type in ("discover", "googleNews")
                       else ["query", "page", "country", "device"])
@@ -115,8 +121,9 @@ def download_day(client, day, api_search_type, level):
             keys = dict(zip(dimensions, row["keys"]))
             impressions = int(row["impressions"])
             position = row.get("position")
-            # The API gives a rounded average position; the export gives the
-            # summed zero-based position. Rebuild the sum so the column matches.
+            # The API gives an average position with rounding. The export gives
+            # the sum of the zero-based position. Calculate the sum again, so the
+            # column agrees with the export.
             position_sum = (position - 1) * impressions if position is not None else None
             if level == "url":
                 results.append((
@@ -166,7 +173,8 @@ def main():
                     current_day = dt.date.fromordinal(ordinal)
                     day = current_day.isoformat()
 
-                    # Older than the refresh window and already stored: leave it.
+                    # The day is before the refresh window and is already in the
+                    # database. Keep it.
                     if current_day < refresh and db.execute(
                         f"SELECT 1 FROM {table} WHERE data_date=? AND site_url=? "
                         f"AND search_type=? LIMIT 1",
@@ -175,7 +183,9 @@ def main():
                         continue
 
                     records = download_day(client, day, api_search_type, level)
-                    with db:  # Fetch first; never delete existing data on a failed fetch.
+                    # Get the data first. Do not delete the stored data if the
+                    # fetch fails.
+                    with db:
                         db.execute(
                             f"DELETE FROM {table} WHERE data_date=? AND site_url=? "
                             f"AND search_type=?",

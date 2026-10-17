@@ -1,5 +1,5 @@
--- Monthly totals for a page or folder. On BigQuery, swap strftime for
--- FORMAT_DATE('%Y-%m', data_date).
+-- The monthly totals for a page or a folder.
+-- Edit the url pattern. For BigQuery, change strftime to FORMAT_DATE('%Y-%m', data_date).
 SELECT strftime('%Y-%m', data_date) AS year_month,
        SUM(clicks) AS clicks,
        SUM(impressions) AS impressions,

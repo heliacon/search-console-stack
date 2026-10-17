@@ -1,4 +1,6 @@
--- Yearly totals. On BigQuery, swap strftime for FORMAT_DATE('%Y', data_date).
+-- The yearly totals.
+-- The current year is not complete, so its totals are lower than a full year.
+-- For BigQuery, change strftime to FORMAT_DATE('%Y', data_date).
 SELECT strftime('%Y', data_date) AS year,
        SUM(clicks) AS clicks,
        SUM(impressions) AS impressions,

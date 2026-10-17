@@ -1,5 +1,5 @@
--- Week over week totals for a page or folder: current period against the
--- previous one. Edit the url pattern and both date ranges.
+-- The week-over-week totals for a page or a folder.
+-- Edit the url pattern and the two date ranges.
 WITH current_period AS (
   SELECT SUM(clicks) AS clicks,
          SUM(impressions) AS impressions,

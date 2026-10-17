@@ -1,4 +1,4 @@
--- Top pages by clicks.
+-- The top pages by clicks.
 SELECT url,
        SUM(clicks) AS clicks,
        SUM(impressions) AS impressions,

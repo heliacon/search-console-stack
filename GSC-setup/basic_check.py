@@ -1,10 +1,12 @@
-"""Sanity-check a local gsc.db mirror: row counts, date coverage and headline
-totals for both native tables. Read-only; run it after a pull to confirm the
-data landed and the numbers look sane.
+"""Examine a local gsc.db database and show a summary.
 
-Weighted average position is SUM(position_sum)/SUM(impressions)+1, never
-AVG(position): the export stores a summed zero-based position, so an unweighted
-average would be wrong.
+This script shows the row counts, the date range, and the headline totals for the
+two tables. The script reads the database only. Run it after a pull to make sure
+that the data is correct.
+
+The script calculates the average position as SUM(position_sum)/SUM(impressions)
++ 1. It does not use AVG(position). The export stores the sum of the zero-based
+position. So an average without weights would be wrong.
 """
 import sqlite3
 

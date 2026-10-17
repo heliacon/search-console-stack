@@ -1,6 +1,8 @@
--- Queries driving a page or folder.
--- Edit the url pattern: end it with /% to match a whole folder, or give an exact
--- URL with no % for a single page. Anonymised queries are dropped.
+-- The queries that bring traffic to a page or a folder.
+-- Edit the url pattern. To match a full folder, end the pattern with /%.
+-- For one page, give the full URL with no %.
+-- A domain property also has http, www, and subdomain URLs. Match your canonical host.
+-- This query removes the anonymised-query rows.
 SELECT query,
        SUM(clicks) AS clicks,
        SUM(impressions) AS impressions,

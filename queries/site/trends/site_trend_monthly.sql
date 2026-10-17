@@ -1,4 +1,5 @@
--- Monthly totals. On BigQuery, swap strftime for FORMAT_DATE('%Y-%m', data_date).
+-- The monthly totals.
+-- For BigQuery, change strftime to FORMAT_DATE('%Y-%m', data_date).
 SELECT strftime('%Y-%m', data_date) AS year_month,
        SUM(clicks) AS clicks,
        SUM(impressions) AS impressions,

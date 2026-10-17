@@ -1,5 +1,5 @@
--- Weekly totals for a page or folder. On BigQuery, swap strftime for
--- FORMAT_DATE('%Y-%W', data_date).
+-- The weekly totals for a page or a folder.
+-- Edit the url pattern. For BigQuery, change strftime to FORMAT_DATE('%Y-%W', data_date).
 SELECT strftime('%Y-%W', data_date) AS year_week,
        MIN(data_date) AS week_start,
        SUM(clicks) AS clicks,

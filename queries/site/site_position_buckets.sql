@@ -1,15 +1,16 @@
--- Count of queries, and their clicks and impressions, grouped into ranking bands.
+-- The count of queries and their clicks and impressions, in ranking bands.
 SELECT CASE
-         WHEN avg_position <= 3  THEN '1 top 3'
-         WHEN avg_position <= 10 THEN '2 page one (4-10)'
-         WHEN avg_position <= 20 THEN '3 page two (11-20)'
-         ELSE '4 beyond (21+)'
+         WHEN avg_position <= 3  THEN '1 (3 or less)'
+         WHEN avg_position <= 10 THEN '2 (more than 3, up to 10)'
+         WHEN avg_position <= 20 THEN '3 (more than 10, up to 20)'
+         ELSE '4 (more than 20)'
        END AS bucket,
        COUNT(*) AS queries,
        SUM(clicks) AS clicks,
        SUM(impressions) AS impressions
 FROM (
-  -- Average position per query first, then bucket those per-query averages.
+  -- First calculate the average position for each query.
+  -- Then put those averages into bands.
   SELECT query,
          SUM(clicks) AS clicks,
          SUM(impressions) AS impressions,

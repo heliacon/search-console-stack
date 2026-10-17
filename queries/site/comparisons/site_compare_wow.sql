@@ -1,5 +1,5 @@
--- Week over week totals: current period against the previous one.
--- All rows kept. Only the two date ranges differ from the m/m and y/y versions.
+-- The week-over-week totals: the current period and the previous period.
+-- This query keeps all rows. Edit the two date ranges.
 WITH current_period AS (
   SELECT SUM(clicks) AS clicks,
          SUM(impressions) AS impressions,

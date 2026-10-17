@@ -1,6 +1,6 @@
--- Headline totals for a property over a date range.
--- Anonymised-query rows are kept so the totals are complete.
--- Edit site_url and the date range.
+-- The headline totals for a property in a date range.
+-- This query keeps the anonymised-query rows, so the totals are complete.
+-- Edit the site_url value and the date range.
 SELECT SUM(clicks) AS clicks,
        SUM(impressions) AS impressions,
        ROUND(1.0*SUM(clicks)/NULLIF(SUM(impressions),0), 4) AS ctr,

@@ -1,4 +1,5 @@
--- Weekly totals. On BigQuery, swap strftime for FORMAT_DATE('%Y-%W', data_date).
+-- The weekly totals.
+-- For BigQuery, change strftime to FORMAT_DATE('%Y-%W', data_date).
 SELECT strftime('%Y-%W', data_date) AS year_week,
        MIN(data_date) AS week_start,
        SUM(clicks) AS clicks,

@@ -1,5 +1,6 @@
--- Totals split by search type (WEB, IMAGE, VIDEO, NEWS, DISCOVER, GOOGLE_NEWS).
--- No search_type filter, so every surface is counted.
+-- The totals for each search type (WEB, IMAGE, VIDEO, NEWS, DISCOVER, GOOGLE_NEWS).
+-- This query has no search_type filter, so it counts all the surfaces.
+-- Note: for DISCOVER and GOOGLE_NEWS, the avg_position value is not a search rank.
 SELECT search_type,
        SUM(clicks) AS clicks,
        SUM(impressions) AS impressions,

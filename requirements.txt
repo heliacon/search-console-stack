@@ -1,0 +1,8 @@
+# The Python packages for the Search Console Stack pull scripts.
+# basic_gsc_pull.py uses the Search Console API client and the auth packages.
+google-api-python-client>=2.100
+google-auth>=2.23
+google-auth-oauthlib>=1.1
+# basic_big_query_pull.py uses the BigQuery client.
+google-cloud-bigquery>=3.13
+# basic_check.py uses only the Python standard library (sqlite3). It needs nothing here.

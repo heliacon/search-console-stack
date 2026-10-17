@@ -1,15 +1,18 @@
-"""Copy the Search Console BigQuery bulk export into a local SQLite mirror that
-keeps the export's own table and column names.
+"""Copy the Search Console BigQuery bulk export into a local SQLite database.
 
-The canned queries in ../queries target those native names, so they run
-unchanged here and against the live export in BigQuery: only the table prefix
-differs (`project.dataset.searchdata_url_impression` vs the local table). Run
-this daily. If you backfilled history with basic_gsc_pull.py first, this
-overwrites each day as its export lands (last-writer-wins per day), replacing
-the API's approximate figures with the authoritative export.
+The local database uses the same table names and column names as the export. So
+the queries in the queries folder operate on the local database and on the
+export in BigQuery. Only the table prefix is different. For BigQuery, use
+project.dataset.searchdata_url_impression.
 
-The raw export carries ~30 volatile search-appearance (is_*) columns; those are
-summed away here so each day aggregates to the core-column schema below.
+Run this script each day. If you use basic_gsc_pull.py first to get the history,
+this script writes each day again when its export is available. For each day, the
+last script to write wins. So BigQuery replaces the approximate API values with
+the correct values from the export.
+
+The export has about 30 search-appearance (is_*) columns. This script adds the
+values of these columns together. Each day then agrees with the core-column
+schema below.
 """
 import datetime as dt
 import sqlite3
@@ -20,13 +23,14 @@ from google.oauth2 import service_account
 PROJECT = "your-project-id"
 DATASET = "searchconsole"
 START_DATE = "2025-01-01"
-END_DATE = ""              # optional "YYYY-MM-DD" to cap the range; "" = up to today-3
+END_DATE = ""              # optional "YYYY-MM-DD" to limit the range; "" = up to today-3
 DB_FILE = "gsc.db"
 REFRESH_DAYS = 7
 
-# SQLite has no DATE or BOOL: data_date is TEXT (ISO), the is_anonymized_* flags
-# are INTEGER 0/1. search_type is stored exactly as the export gives it (upper
-# case: WEB, IMAGE, VIDEO, NEWS, DISCOVER, GOOGLE_NEWS).
+# SQLite does not have a DATE type or a BOOL type. So data_date is TEXT in ISO
+# format, and the is_anonymized_* flags are INTEGER values 0 or 1.
+# search_type keeps the export's own case (WEB, IMAGE, VIDEO, NEWS, DISCOVER,
+# GOOGLE_NEWS).
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS searchdata_url_impression (
     data_date TEXT, site_url TEXT, url TEXT, query TEXT,
@@ -46,9 +50,10 @@ CREATE TABLE IF NOT EXISTS searchdata_site_impression (
 );
 """
 
-# Select the core columns in the exact order of the local schema, summing over
-# the appearance columns. The URL table carries sum_position; the site table
-# carries sum_top_position (Google's own naming inconsistency, preserved).
+# Select the core columns in the same order as the local schema. Add the values
+# together across the appearance columns. The URL table has the column
+# sum_position. The site table has the column sum_top_position. This is Google's
+# naming difference. This copy keeps it.
 SQL = {
     "searchdata_url_impression": """
         SELECT CAST(data_date AS STRING) AS data_date,
@@ -98,8 +103,8 @@ def main():
 
     with sqlite3.connect(DB_FILE) as db:
         db.executescript(SCHEMA)
-        # ExportLog records which day each namespace actually published, so we
-        # only query days that exist and never re-query a gap.
+        # ExportLog shows the day that each namespace published. The script queries
+        # only the days that exist. It does not query a gap again.
         log_query = f"""
             SELECT DISTINCT CAST(data_date AS STRING) AS data_date, namespace
             FROM `{PROJECT}.{DATASET}.ExportLog`
@@ -119,8 +124,8 @@ def main():
         for table in ("searchdata_url_impression", "searchdata_site_impression"):
             query = SQL[table].format(project=PROJECT, dataset=DATASET)
             for day in sorted(available[table]):
-                # Days older than the refresh window that are already stored can
-                # be left alone; recent days are always re-pulled.
+                # A day before the refresh window that is already stored stays as
+                # it is. The script gets a recent day again each time.
                 recent = dt.date.fromisoformat(day) >= end - dt.timedelta(days=REFRESH_DAYS - 1)
                 if not recent and db.execute(
                     f"SELECT 1 FROM {table} WHERE data_date=? LIMIT 1",
@@ -128,9 +133,10 @@ def main():
                 ).fetchone():
                     continue
 
-                # Stage in a temp table so a failed BigQuery query never removes
-                # the previous day's SQLite data. URL and site widths differ, so
-                # rebuild staging per table.
+                # Put the data in a temporary table first. If the BigQuery query
+                # fails, the script does not remove the SQLite data from before.
+                # The URL table and the site table have different widths. So make
+                # the staging table again for each table.
                 db.execute("DROP TABLE IF EXISTS temp.staging")
                 db.execute(f"CREATE TEMP TABLE staging AS SELECT * FROM {table} WHERE 0")
                 count = 0
@@ -141,15 +147,16 @@ def main():
                         db.execute(f"INSERT INTO staging VALUES ({placeholders})", values)
                         count += 1
 
-                    # Replace only the (property, search_type) slices present in
-                    # this export; everything else in the db is left untouched.
-                    coverage = db.execute(
-                        "SELECT DISTINCT site_url, search_type FROM staging"
-                    ).fetchall()
-                    for site_url_value, search_type in coverage:
+                    # Replace the full day for each property in this export. The
+                    # staging table holds every search type for the day, so a
+                    # delete by day and property also removes a slice that dropped
+                    # to zero. The script does not change the other properties or
+                    # the other days.
+                    properties = db.execute("SELECT DISTINCT site_url FROM staging").fetchall()
+                    for (site_url_value,) in properties:
                         db.execute(
-                            f"DELETE FROM {table} WHERE data_date=? AND site_url=? AND search_type=?",
-                            (day, site_url_value, search_type),
+                            f"DELETE FROM {table} WHERE data_date=? AND site_url=?",
+                            (day, site_url_value),
                         )
                     db.execute(f"INSERT INTO {table} SELECT * FROM staging")
                     db.commit()

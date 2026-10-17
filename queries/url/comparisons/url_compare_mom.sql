@@ -1,5 +1,6 @@
--- Month over month totals for a page or folder: current period against the
--- previous one. Edit the url pattern and both date ranges.
+-- The month-over-month totals for a page or a folder.
+-- The two months can have a different number of days. Allow for this in the change.
+-- Edit the url pattern and the two date ranges.
 WITH current_period AS (
   SELECT SUM(clicks) AS clicks,
          SUM(impressions) AS impressions,

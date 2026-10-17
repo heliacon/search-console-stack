@@ -1,4 +1,6 @@
--- Queries with high impressions and a page-one or page-two position but low CTR.
+-- The queries that have many impressions and a low CTR on page one.
+-- For queries at position 11 to 20, use site_striking_distance.sql instead.
+-- This query removes the anonymised-query rows.
 SELECT query,
        SUM(impressions) AS impressions,
        SUM(clicks) AS clicks,
@@ -10,10 +12,11 @@ WHERE site_url = 'sc-domain:example.com'
   AND search_type = 'WEB'
   AND is_anonymized_query = FALSE
 GROUP BY query
--- Filter on the aggregate expressions, not the output aliases: a bare column
--- name in HAVING binds to the base column rather than the SUM and misfires.
+-- Use the aggregate expressions in the HAVING clause, not the output aliases.
+-- A column name alone in a HAVING clause points to the base column, not to the
+-- SUM. Then the filter does not operate correctly.
 HAVING SUM(impressions) >= 100
-   AND SUM(sum_top_position)/NULLIF(SUM(impressions),0)+1 BETWEEN 3 AND 20
+   AND SUM(sum_top_position)/NULLIF(SUM(impressions),0)+1 <= 10
    AND 1.0*SUM(clicks)/NULLIF(SUM(impressions),0) < 0.05
 ORDER BY SUM(impressions) DESC
 LIMIT 100;

@@ -1,4 +1,5 @@
--- Device split for a page or folder.
+-- The totals for each device for a page or a folder.
+-- Edit the url pattern for your canonical host.
 SELECT device,
        SUM(clicks) AS clicks,
        SUM(impressions) AS impressions,

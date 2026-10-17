@@ -1,5 +1,6 @@
--- Year over year totals for a page or folder: current period against the
--- previous one. Edit the url pattern and both date ranges.
+-- The year-over-year totals for a page or a folder: this period and the same
+-- period last year. Both periods have the same length, so the comparison is fair.
+-- Edit the url pattern and the two date ranges.
 WITH current_period AS (
   SELECT SUM(clicks) AS clicks,
          SUM(impressions) AS impressions,
@@ -8,7 +9,7 @@ WITH current_period AS (
   WHERE site_url = 'sc-domain:example.com'
     AND search_type = 'WEB'
     AND url LIKE 'https://example.com/blog/%'
-    AND data_date BETWEEN '2026-01-01' AND '2026-12-31'
+    AND data_date BETWEEN '2026-01-01' AND '2026-09-30'
 ),
 previous_period AS (
   SELECT SUM(clicks) AS clicks,
@@ -18,7 +19,7 @@ previous_period AS (
   WHERE site_url = 'sc-domain:example.com'
     AND search_type = 'WEB'
     AND url LIKE 'https://example.com/blog/%'
-    AND data_date BETWEEN '2025-01-01' AND '2025-12-31'
+    AND data_date BETWEEN '2025-01-01' AND '2025-09-30'
 )
 SELECT current_period.clicks AS clicks_now,
        previous_period.clicks AS clicks_prev,

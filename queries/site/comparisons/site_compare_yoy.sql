@@ -1,12 +1,13 @@
--- Year over year totals: current period against the previous one.
--- All rows kept. Only the two date ranges differ from the w/w and m/m versions.
+-- The year-over-year totals: the current period and the same period last year.
+-- Both periods have the same length, so the comparison is fair. Do not compare a
+-- part of this year against all of last year. Edit the two date ranges.
 WITH current_period AS (
   SELECT SUM(clicks) AS clicks,
          SUM(impressions) AS impressions,
          SUM(sum_top_position) AS position_sum
   FROM searchdata_site_impression
   WHERE site_url = 'sc-domain:example.com'
-    AND data_date BETWEEN '2026-01-01' AND '2026-12-31'
+    AND data_date BETWEEN '2026-01-01' AND '2026-09-30'
     AND search_type = 'WEB'
 ),
 previous_period AS (
@@ -15,7 +16,7 @@ previous_period AS (
          SUM(sum_top_position) AS position_sum
   FROM searchdata_site_impression
   WHERE site_url = 'sc-domain:example.com'
-    AND data_date BETWEEN '2025-01-01' AND '2025-12-31'
+    AND data_date BETWEEN '2025-01-01' AND '2025-09-30'
     AND search_type = 'WEB'
 )
 SELECT current_period.clicks AS clicks_now,

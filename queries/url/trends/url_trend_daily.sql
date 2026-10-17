@@ -1,6 +1,6 @@
--- Daily totals for a page or folder with a 7-day moving average of clicks.
--- The moving average uses ROWS 6 PRECEDING, which assumes one row per day; the
--- GROUP BY data_date guarantees that. Edit the url pattern.
+-- The daily totals for a page or a folder, with a 7-day moving average of clicks.
+-- The moving average is the mean of the last 7 rows in the result.
+-- Edit the url pattern for your canonical host.
 SELECT data_date,
        SUM(clicks) AS clicks,
        SUM(impressions) AS impressions,

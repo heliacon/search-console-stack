@@ -1,4 +1,4 @@
--- Totals by country.
+-- The totals for each country.
 SELECT country,
        SUM(clicks) AS clicks,
        SUM(impressions) AS impressions,

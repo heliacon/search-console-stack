@@ -1,4 +1,4 @@
--- Totals by device.
+-- The totals for each device.
 SELECT device,
        SUM(clicks) AS clicks,
        SUM(impressions) AS impressions,
