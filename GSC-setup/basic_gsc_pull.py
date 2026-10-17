@@ -173,8 +173,7 @@ def main():
                     current_day = dt.date.fromordinal(ordinal)
                     day = current_day.isoformat()
 
-                    # The day is before the refresh window and is already in the
-                    # database. Keep it.
+                    # GSC data for older days does not change, so do not fetch it again.
                     if current_day < refresh and db.execute(
                         f"SELECT 1 FROM {table} WHERE data_date=? AND site_url=? "
                         f"AND search_type=? LIMIT 1",

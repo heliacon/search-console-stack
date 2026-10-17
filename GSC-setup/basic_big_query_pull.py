@@ -124,8 +124,8 @@ def main():
         for table in ("searchdata_url_impression", "searchdata_site_impression"):
             query = SQL[table].format(project=PROJECT, dataset=DATASET)
             for day in sorted(available[table]):
-                # A day before the refresh window that is already stored stays as
-                # it is. The script gets a recent day again each time.
+                # Exports for older days do not change, so do not query a stored
+                # day again. Recent days can still change, so re-query them.
                 recent = dt.date.fromisoformat(day) >= end - dt.timedelta(days=REFRESH_DAYS - 1)
                 if not recent and db.execute(
                     f"SELECT 1 FROM {table} WHERE data_date=? LIMIT 1",

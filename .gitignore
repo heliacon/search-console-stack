@@ -1,0 +1,19 @@
+# Credentials — never commit these
+service_account.json
+client_secret.json
+token.json
+
+# Local data mirror
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# macOS
+.DS_Store
