@@ -1,0 +1,32 @@
+-- Month over month totals for a page or folder: current period against the
+-- previous one. Edit the url pattern and both date ranges.
+WITH current_period AS (
+  SELECT SUM(clicks) AS clicks,
+         SUM(impressions) AS impressions,
+         SUM(sum_position) AS position_sum
+  FROM searchdata_url_impression
+  WHERE site_url = 'sc-domain:example.com'
+    AND search_type = 'WEB'
+    AND url LIKE 'https://example.com/blog/%'
+    AND data_date BETWEEN '2026-09-01' AND '2026-09-30'
+),
+previous_period AS (
+  SELECT SUM(clicks) AS clicks,
+         SUM(impressions) AS impressions,
+         SUM(sum_position) AS position_sum
+  FROM searchdata_url_impression
+  WHERE site_url = 'sc-domain:example.com'
+    AND search_type = 'WEB'
+    AND url LIKE 'https://example.com/blog/%'
+    AND data_date BETWEEN '2026-08-01' AND '2026-08-31'
+)
+SELECT current_period.clicks AS clicks_now,
+       previous_period.clicks AS clicks_prev,
+       current_period.clicks - previous_period.clicks AS clicks_change,
+       ROUND(100.0*(current_period.clicks - previous_period.clicks)/NULLIF(previous_period.clicks,0), 1) AS clicks_pct,
+       current_period.impressions AS impressions_now,
+       previous_period.impressions AS impressions_prev,
+       ROUND(100.0*(current_period.impressions - previous_period.impressions)/NULLIF(previous_period.impressions,0), 1) AS impressions_pct,
+       ROUND(current_period.position_sum/NULLIF(current_period.impressions,0)+1, 2) AS position_now,
+       ROUND(previous_period.position_sum/NULLIF(previous_period.impressions,0)+1, 2) AS position_prev
+FROM current_period, previous_period;
