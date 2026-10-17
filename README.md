@@ -154,7 +154,7 @@ Site-level reports read `searchdata_site_impression`. Page-level reports read
 - **The API is approximate.** The API gives an average position with rounding and
   it omits the anonymised queries. The Big Query export is exact. So the API
   backfill is a little low until the export writes the same day.
-- **Search appearance is BigQuery only.** The export has about 30 search-appearance
+- **Search appearance is Big Query only.** The export has about 30 search-appearance
   (`is_*`) columns, for rich results. The local copy and the API do not keep them,
   so `url_appearance_breakdown` runs on the export only.
 - **Discover and Google News** have no query dimension, so those surfaces are
